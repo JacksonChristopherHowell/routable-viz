@@ -1,0 +1,33 @@
+<h1 id="routable-ai-visualization-challenge">Routable AI Visualization Challenge</h1>
+<p>At Routable AI, we are building the world’s most advanced mobility-as-a-service backend capable of dispatching fleets comprised of thousands of vehicles. Our technology stems from research conducted at MIT that showed all of Manhattan’s taxi demand (400,000 trips daily) could be served by 3,000 shared vehicles with minimal disruption to customer convenience (2.8 average waiting time, 3.5 average travel delay). Our main product offering is an API for fleet operators that makes shared vehicles (buses) available on-demand. Our API ingests transportation requests and vehicle locations, and returns what routes each vehicle should take to service the demand.</p>
+<p>On the face of it, you may think we are only concerned with building out the backend, but this isn’t the case at all. The data we are dealing with is high dimensional and changes over time. Visualizing and interacting with this data sheds incredible insight into how operational efficiency can be improved and where other problems exist within the system.</p>
+<h2 id="description">Description</h2>
+<p>Our API works by collecting the state of the vehicles at a set interval as they operate. We also receive updates whenever a vehicle has completed an event (picking someone up, dropping someone off, etc). For this challenge, we want you to create an interactive visualization using <a href="https://deck.gl/">deck.gl</a> that shows the vehicles moving over time to pick up and drop off riders.</p>
+<h3 id="requirements">Requirements</h3>
+<ol type="1">
+<li>Allow the API key, start time, and end time to be specified as URL query parameters</li>
+<li>Use a <a href="https://deck.gl/#/documentation/deckgl-api-reference/layers/trips-layer">TripsLayer</a> to visualize short term location history of each vehicle</li>
+<li>Use a <a href="https://deck.gl/#/documentation/deckgl-api-reference/layers/geojson-layer">GeoJsonLayer</a> to visualize the future path of each vehicle</li>
+<li>Use an <a href="https://deck.gl/#/documentation/deckgl-api-reference/layers/icon-layer">IconLayer</a> to display the pick up, drop off, and rebalance locations for each vehicle’s schedule</li>
+<li>Use a <a href="https://deck.gl/#/documentation/deckgl-api-reference/layers/simple-mesh-layer">SimpleMeshLayer</a> to display the vehicle location with a 3D model. This can be as simple as using a sphere, but bonus points will be given for using a 3D model of a car</li>
+<li>Add a play / pause button to start and stop the visualization</li>
+<li>Add a slider to manipulate the current time of the visualization</li>
+</ol>
+<p>We have done a little bit of the ground work for you. Historical vehicle state data can be retrieved from our server by using the <a href="https://routable.ai/docs/#tag/Historical-Vehicle-State/paths/~1query~1vehicles~1historical%5B.json%5D/get">/query/vehicles/historical.json</a> endpoint. The data returned from this endpoint contains vehicle state information over time. See the metadata below for accessing test data</p>
+<pre><code>API key:    visualization-challenge_2020-01-14T14:59:54Z
+Start time: 2019-01-01T00:00:00-05:00
+End time:   2019-01-01T00:45:00-05:00</code></pre>
+<p>We have also provided code in this repo as a starting point. All of the React code can be found in <code>app.js</code>. This should act as your main entry point. You can run the development server using <a href="https://docs.docker.com/install/">docker</a> as follows.</p>
+<pre><code>docker-compose up</code></pre>
+<p><strong>Note:</strong> If you change <code>package.json</code> or <code>webpack.config.js</code>, you will need to run <code>docker-compose up --build</code></p>
+<p>For convenience, the server rebuilds your app as you update code. Now you can navigate to <a href="http://localhost:8081">localhost:8081</a> to view the visualization</p>
+<h3 id="how-you-will-be-judged">How you will be judged</h3>
+<p>We will be looking at how well you fulfilled the requirements, what design decisions you made and why, the extensibility / quality of your code, and how well you are able to understand documentation to use a tool you may not have experience with.</p>
+<h3 id="final-notes">Final notes</h3>
+<ul>
+<li>Install docker if you do not already have it</li>
+<li>Read all of the documentation</li>
+<li>If you get stuck or something doesn’t seem right, email alex@routable.ai</li>
+<li>We care more about function than form given the timespan, but making things look good doesn’t hurt</li>
+<li>The code will be reviewed, so keep that in mind</li>
+</ul>

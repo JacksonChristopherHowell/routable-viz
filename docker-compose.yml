@@ -1,0 +1,10 @@
+version: '3'
+services:
+    app:
+        build: .
+        ports:
+            - "8081:8081"
+        volumes:
+            - .:/root/app
+        environment:
+            - MapboxAccessToken=pk.eyJ1Ijoid2FsbGFyZWx2byIsImEiOiJjazVkeDNrMDgwYmN1M2RuMzRjcnRkdDh1In0.rWHBqU9mPLizJr1nFGpgfQ
