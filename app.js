@@ -70,16 +70,18 @@ axios
     updates = response.data
     .map(item => item.updates);
     console.log(updates);
+    //var testInterPol = updates[0].slice(1,3);  
+    //interpolatePos(testInterPol);
 
-    progress = updates.map(function(subarray) {
-      return subarray.filter((obj, index, self) => obj[config.EVENT_FIELD] === "progress");
-    });
+    // progress = updates.map(function(subarray) {
+    //   return subarray.filter((obj, index, self) => obj[config.EVENT_FIELD] === "progress");
+    // });
     //console.log(progress);
 
-    progressPaths = progress.map(function(subarray) {
-      return subarray.map(obj => obj[config.PATH_FIELD])
-        .filter((value, index, self) => value !== null);
-    });
+    // progressPaths = progress.map(function(subarray) {
+    //   return subarray.map(obj => obj[config.PATH_FIELD])
+    //     .filter((value, index, self) => value !== null);
+    // });
     //console.log(progressPaths);
 
     // times = updates.map(function(subarray) {
@@ -98,7 +100,7 @@ axios
     //paths = target2; //.flat();
     //console.log(paths);
 
-    cars = _getCars(response.data[0]);
+    //cars = _getCars(response.data[0]);
     //console.log(paths[0][0].geometry.coordinates[0]);
     //console.log(_getGeoJSON(response.data));
 
@@ -106,13 +108,6 @@ axios
   .catch(err => {
     throw err;
   });
-
-const timestamp1 = Date.parse('2019-01-01T05:00:30Z') / 1000;
-const timestamp2 = Date.parse('2019-01-01T05:01:30Z') / 1000;
-const timestamp3 = Date.parse('2019-01-01T05:45:00Z') / 1000;
-console.log(
-  timestamp3 - timestamp1
-);
 
 function _getCars(d) {
   let locs = d.updates.map(function(l) { 
@@ -124,6 +119,63 @@ function _getCars(d) {
       });
   return locs
 };
+
+function angleFromCoordinate(lat1,lon1,lat2,lon2) {
+    var p1 = {
+        x: lat1,
+        y: lon1
+    };
+    var p2 = {
+        x: lat2,
+        y: lon2
+    };
+    // angle in radians
+    //var angleRadians = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+
+    // angle in degrees
+    var angleDeg = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+
+    var bearing = (angleDeg + 360) % 360;
+    bearing = 360 - bearing;
+    // Get 'back bearing' https://www.maptools.com/tutorials/plotting/forward-and-back-bearings
+    if (bearing <= 180 ){
+      bearing = bearing + 180;
+    } else {
+      bearing = bearing - 180;
+    }
+    return bearing;
+}
+
+function interpolatePos(locs) {
+  //need to map each item in array
+    let interPtsArr = locs.map(function(obj, index) {
+      var t1 = Date.parse(locs[index][config.TIME_FIELD])/1000; 
+      var t2, deltaLat, deltaLon;
+      if (index < locs.length-1) { 
+        t2 = Date.parse(locs[index+1][config.TIME_FIELD])/1000;
+        deltaLat = locs[index+1].location.lat - locs[index].location.lat;
+        deltaLon = locs[index+1].location.lng - locs[index].location.lng;
+      } else {
+        return null;
+      }
+      const step = 3; 
+      var interPtCollection = []; 
+      for (let t = t1; t < t2; t+= step) {
+        let t0_1 = (t - t1) / (t2 - t1);
+        let latInter = locs[index].location.lat + deltaLat  * t0_1;
+        let lonInter = locs[index].location.lng + deltaLon  * t0_1;
+        let interPolLoc = {
+          lonInter: lonInter, 
+          latInter: latInter, 
+          timeInter: t
+        };
+        interPtCollection.push(interPolLoc);
+      }
+      return interPtCollection;
+    });
+    //console.log(interPtsArr);
+    return interPtsArr;
+}
 
 const ROUTABLE_RED = [223, 36, 48];
 
@@ -236,37 +288,63 @@ export default class App extends Component {
           .map(obj => obj[config.PATH_FIELD])
           .filter((value, index, self) => value !== null);
       });
-    return futurePaths[0];
+    if(futurePaths[0]) return futurePaths[0][0] ;
   }
 
   _getCars(d) {
     let time = this.state.time;
-    console.log("time = "+time);
+    //console.log("time = "+time);
+    //let interpolLocs = interpolatePos(locs);
     if (d){
-    let locs = d.filter((obj, index, self) => Date.parse(obj[config.TIME_FIELD])/1000 - Date.parse(self[0][config.TIME_FIELD])/1000 >= time);
-    console.log(locs);
 
-    let now = locs.map(function(l) {            
-              return {
-                  position: [l.location.lng, l.location.lat],
-                  color: [255, 0, 0],
-                  orientation: [0, 0, 0]
-                }
-              });
-    //console.log(now);
-    return now
+      // try to interpolate
+      let interpolLocs = interpolatePos(d);
+      //console.log(interpolLocs);
+      let target = interpolLocs.map(function(subarray) {
+        if (subarray !== undefined && subarray !== null && subarray.length>0){
+          //console.log(subarray);
+          return subarray
+        }
+      });
+      target = target.flat();
+      target = target.filter(item => item !== undefined);
+      let timedInterpolLocs = target.filter((item, index, self) => item.timeInter - self[0].timeInter >= time)// should already be in milisecs
+          .map(function(item, index, self) {
+            var angle;
+            if (index < self.length-1) {   ;
+              angle = angleFromCoordinate(self[index].latInter, self[index].lonInter, self[index+1].latInter, self[index+1].lonInter);
+            } else {
+              angle = 0;
+            }
+            var newItem = [{
+                position: [ item.lonInter, item.latInter ],
+                color: [255, 0, 0],
+                angle: [0, angle,0],
+                time: item.timeInter,
+              }];
+            return newItem;  
+          });
+      console.log(timedInterpolLocs[0]);
+      return timedInterpolLocs[0];
+
+    // let locs = d.filter((obj, index, self) => Date.parse(obj[config.TIME_FIELD])/1000 - Date.parse(self[0][config.TIME_FIELD])/1000 >= time);
+    // let pos = locs.map(function(obj, index) {
+    //           var angle;
+    //           if (index < locs.length-1) {   ;
+    //             angle = angleFromCoordinate(locs[index].location.lat, locs[index].location.lng, locs[index+1].location.lat, locs[index+1].location.lng);
+    //           } else {
+    //             angle = 0;
+    //           }  
+    //           return [{
+    //               position: [locs[index].location.lng, locs[index].location.lat],
+    //               color: [255, 0, 0],
+    //               angle: [0, angle,0],
+    //             }]
+    //           });
+    // return pos[0];
     }
   }
 
-
-  testFunk(){
-    this.testFunk2();
-  }
-
-  testFunk2(){
-     console.log("time = "+this.state.time); 
-  }
-  
   _renderLayers() {
     const {
       trips = DATA_URL.TRIPS,
@@ -279,11 +357,11 @@ export default class App extends Component {
         id: 'mini-coopers',
         data:  this._getCars(updates[0]),
         mesh: MESH_URL,
-        getScale: [1,1,1],
+        getScale: [0.75,0.75,0.75],
         //getPosition: this._getCars,
         getPosition: d => d.position,
         getColor: d => d.color,
-        // getOrientation: d => d.orientation
+        getOrientation: d => d.angle,
       }),
       new TripsLayer({
         id: 'trips',
@@ -298,21 +376,21 @@ export default class App extends Component {
         currentTime: this.state.time,
         shadowEnabled: false
       }),
-      // new GeoJsonLayer({
-      //   id: 'geojson-layer',
-      //   data: this._getFuturePaths(updates),
-      //   pickable: true,
-      //   stroked: false,
-      //   filled: true,
-      //   extruded: true,
-      //   lineWidthScale: 20,
-      //   lineWidthMinPixels: 2,
-      //   getFillColor: [160, 160, 180, 200],
-      //   getLineColor: [200, 200, 200],
-      //   getRadius: 100,
-      //   getLineWidth: 1,
-      //   getElevation: 30,
-      // }),
+      new GeoJsonLayer({
+        id: 'geojson-layer',
+        data: this._getFuturePaths(updates),
+        pickable: true,
+        stroked: false,
+        filled: true,
+        extruded: true,
+        lineWidthScale: 20,
+        lineWidthMinPixels: 2,
+        getFillColor: [160, 160, 180, 200],
+        getLineColor: [200, 200, 200],
+        getRadius: 100,
+        getLineWidth: 1,
+        getElevation: 30,
+      }),
     ];
   }
 
