@@ -32,6 +32,9 @@ const DATA_URL = {
 const MESH_URL =
   'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/mesh/minicooper.obj';
 
+const ICON_MAPPING = {
+  marker: {x: 0, y: 0, width: 128, height: 128, anchorY:128, mask: true}
+};
 
 const config = {
   TIME_FIELD: 'time',
@@ -291,6 +294,45 @@ export default class App extends Component {
     if(futurePaths[0]) return futurePaths[0][0] ;
   }
 
+  _getStops(d) {
+    let time = this.state.time;
+    //console.log(time);
+
+    let futureStops = d.map(function(subarray) {
+        return subarray
+          .filter((obj, index, self) => Date.parse(obj[config.TIME_FIELD])/1000 - Date.parse(self[0][config.TIME_FIELD])/1000 >= time)
+          .filter((obj, index, self) => obj[config.SCHEDULE_FIELD] !== null)
+          .map(obj => obj[config.SCHEDULE_FIELD].events);
+      });
+    //console.log(futureStops);
+
+    if(futureStops.length>0 && futureStops[0][0]){
+      let mapStops = futureStops[0][0].map( function(obj, index, self) { 
+          switch(obj.event) {
+            case "dropoff":
+              obj.color =  [255,0,0]
+              break;
+            case "pickup":
+              obj.color = [0,255,0]
+              break;
+            case "rebalance":
+              obj.color = [255,255,0]
+              break;
+            default:
+              obj.color = [169,169,169]
+          }
+          return {
+            color: obj.color,
+            event: obj.event, 
+            time: obj.time, 
+            coordinates: [ obj.location.lng, obj.location.lat, 0], // obj.location.lng, obj.location.lat // obj.location.lat, obj.location.lng
+          }
+      });
+      //console.log(mapStops);
+      return mapStops;
+    } 
+  }
+
   _getCars(d) {
     let time = this.state.time;
     //console.log("time = "+time);
@@ -324,7 +366,7 @@ export default class App extends Component {
               }];
             return newItem;  
           });
-      console.log(timedInterpolLocs[0]);
+      //console.log(timedInterpolLocs[0]);
       return timedInterpolLocs[0];
 
     // let locs = d.filter((obj, index, self) => Date.parse(obj[config.TIME_FIELD])/1000 - Date.parse(self[0][config.TIME_FIELD])/1000 >= time);
@@ -390,6 +432,18 @@ export default class App extends Component {
         getRadius: 100,
         getLineWidth: 1,
         getElevation: 30,
+      }),
+      new IconLayer({
+        id: 'icon-layer',
+        data: this._getStops(updates),
+        //pickable: true,
+        iconAtlas: 'icon-atlas.png',
+        iconMapping: ICON_MAPPING,
+        getIcon: d => 'marker',
+        sizeScale: 15,
+        getPosition: d => d.coordinates,
+        getSize: d => 3,
+        getColor: d => d.color,
       }),
     ];
   }

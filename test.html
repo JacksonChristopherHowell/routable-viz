@@ -1,0 +1,61 @@
+{% if collection.description contains 'youtube' %}
+
+  {{ collection.descrption | split: '/' | last }}
+
+{% endif %}
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/xLIEjCALoTc" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+
+
+
+<div id="shopify-section-slideshow" class="shopify-section index-section">
+  <div class="slideshow--full" data-section-id="1" data-section-type="slideshow-section">
+    <div id="Slideshow-slideshow"
+         class="slideshow"
+         role="region"
+         aria-describedby="slideshow-info"
+         tabindex="-1"
+         aria-label="slideshow">
+
+        <ul class="slideshow__slides">
+            <li class="slideshow__slide slideshow__slide--1 slideshow__slide--active" id="Slide0">
+                <style>
+                  .slideshow__image--1 {
+                    object-position: ;
+                    font-family: "object-fit: cover; object-position: ;";
+                  }
+                </style>
+                <img class="slideshow__image slideshow__image--1 lazyload" 
+                src="//cdn.shopify.com/s/files/1/1334/2661/files/New_Project_49_1_300x.jpg?v=1568661809"
+                data-src="https://cdn.shopify.com/s/files/1/1334/2661/files/New_Project_49_1.jpg?v=1568661809"
+                data-widths="[540, 720, 900, 1080, 1296, 1512, 1728, 1944, 2048]" 
+                data-aspectratio="0.9051903114186851" 
+                data-sizes="auto" 
+                data-parent-fit="cover" 
+                alt="Cover Image">
+                <div class="slideshow__video slideshow__video--1"
+                  data-video-type="youtube"
+                  data-video-id="0ll8TWDxkWE" 
+                  data-block-id="1"></div>
+
+                <div class="slideshow__text-container page-width">
+                  <button class="slideshow__play-button btn btn--clear"
+                        disabled
+                        aria-live="polite"
+                        aria-label="Pause background video"
+                        aria-pressed="false"
+                        data-label-pause="Pause background video"
+                        data-label-play="Play background video"
+                        data-pause-button
+                        >
+                    <span class="visually-hidden" data-play-label>Play</span>
+                    <span class="slideshow__play-button-icon"></span>
+                    <span class="slideshow__play-button-circle"></span>
+                  </button>
+                </div>
+            </li>
+        </ul>
+    </div>
+  </div>
+</div>
+  <!-- {{ block.settings.video_url.id }} -->
